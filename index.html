@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Strategic Planning Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f9f9f9;
+        color: #333;
+      }
+      .navbar {
+        background-color: #213547;
+        color: white;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+      .nav-title {
+        margin: 0;
+        font-size: 1.5rem;
+      }
+      .nav-buttons {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .nav-btn,
+      .btn {
+        padding: 0.5rem 1rem;
+        background-color: white;
+        color: #213547;
+        border: 1px solid #213547;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .nav-btn.active,
+      .btn:hover {
+        background-color: #213547;
+        color: white;
+      }
+      .btn--outline {
+        background-color: transparent;
+        color: white;
+        border: 1px solid white;
+      }
+      .btn--outline:hover {
+        background-color: white;
+        color: #213547;
+      }
+      .main-content {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .center-selector-container {
+        margin-bottom: 1rem;
+      }
+      select {
+        padding: 0.5rem;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+      .kpi-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .kpi-card {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 1rem 1.5rem;
+        width: 160px;
+        min-height: 100px;
+        text-align: center;
+      }
+      .kpi-card h3 {
+        font-size: 1rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+      }
+      .kpi-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #1a1a1a;
+      }
+      .dashboard-charts,
+      .project-charts,
+      .training-charts,
+      .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+      }
+      .chart-container {
+        background-color: #fff;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        height: 300px;
+      }
+      canvas {
+        width: 100% !important;
+        height: 100% !important;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        margin-bottom: 2rem;
+      }
+      table th,
+      table td {
+        border: 1px solid #ddd;
+        padding: 0.75rem;
+        text-align: left;
+      }
+      table th {
+        background-color: #f0f0f0;
+      }
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #323232;
+        color: white;
+        padding: 1rem;
+        border-radius: 5px;
+        display: none;
+      }
+      .toast.show {
+        display: block;
+      }
+      .toast-close {
+        background: transparent;
+        color: white;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        float: right;
+      }
+      .btn-primary {
+        background-color: #1a73e8;
+        border-color: #1a73e8;
+        color: white;
+      }
+      .btn-primary:hover {
+        background-color: #1558b0;
+        border-color: #1558b0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="nav-title">Strategic Planning Dashboard</div>
+      <div class="nav-buttons">
+        <button class="nav-btn active" data-section="dashboard">
+          Dashboard
+        </button>
+        <button class="nav-btn" data-section="okrs">OKRs</button>
+        <button class="nav-btn" data-section="projects">Projects</button>
+        <button class="nav-btn" data-section="training">Training</button>
+        <button class="nav-btn" data-section="analytics">Analytics</button>
+        <button class="btn btn--outline" onclick="logout()">Logout</button>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Department Selector -->
+      <div class="center-selector-container">
+        <label for="centerSelector">Select Department:</label>
+        <select id="centerSelector">
+          <option value="">All Departments</option>
+          <option value="Youth">Youth</option>
+          <option value="Community Engagement">Community Engagement</option>
+          <option value="Membership & Dawah">Membership & Dawah</option>
+          <option value="ID Department">ID Department</option>
+          <option value="Financial Sustainability">
+            Financial Sustainability
+          </option>
+          <option value="Communications">Communications</option>
+          <option value="IT">IT</option>
+          <!-- Additional options will be populated by JavaScript -->
+        </select>
+      </div>
+
+      <!-- Dashboard Section -->
+      <section id="dashboard-section" class="section active">
+        <h2>Dashboard Overview</h2>
+
+        <!-- KPI Cards -->
+        <div class="kpi-container">
+          <div class="kpi-card">
+            <h3>Active OKRs</h3>
+            <div id="activeOkrs" class="kpi-value">0</div>
+          </div>
+          <div class="kpi-card">
+            <h3>Total KPIs</h3>
+            <div id="totalKpis" class="kpi-value">0</div>
+          </div>
+          <div class="kpi-card">
+            <h3>Curriculum Approved</h3>
+            <div id="approvedCurriculum" class="kpi-value">0</div>
+          </div>
+          <div class="kpi-card">
+            <h3>Active Risks</h3>
+            <div id="activeRisks" class="kpi-value">0</div>
+          </div>
+          <div class="kpi-card">
+            <h3>Avg Progress</h3>
+            <div id="avgProgress" class="kpi-value">0%</div>
+          </div>
+        </div>
+
+        <!-- Dashboard Charts -->
+        <div class="dashboard-charts">
+          <div class="chart-container">
+            <h3>OKR Progress by Department</h3>
+            <canvas id="okrProgressChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h3>KPI Performance Overview</h3>
+            <canvas id="kpiPerformanceChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h3>Risk Distribution</h3>
+            <canvas id="riskDistributionChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- OKRs Section -->
+      <section id="okrs-section" class="section">
+        <h2>Objectives and Key Results</h2>
+
+        <!-- OKR Controls -->
+        <div class="okr-controls">
+          <button id="addOkrBtn" class="btn btn-primary">Add OKR</button>
+          <!-- OKR Filters -->
+          <div class="okr-filters">
+            <select id="okrStatusFilter">
+              <option value="">All Status</option>
+              <option value="On Track">On Track</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Behind">Behind</option>
+              <option value="Completed">Completed</option>
+            </select>
+            <select id="okrLevelFilter">
+              <option value="">All Levels</option>
+              <option value="Organizational">Organizational</option>
+              <option value="Departmental">Departmental</option>
+            </select>
+            <select id="okrDepartmentFilter">
+              <option value="">All Departments</option>
+              <option value="Youth">Youth</option>
+              <option value="Community Engagement">Community Engagement</option>
+              <option value="Membership & Dawah">Membership & Dawah</option>
+              <option value="ID Department">ID Department</option>
+              <option value="Financial Sustainability">
+                Financial Sustainability
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- OKR Table -->
+        <div class="table-container">
+          <table class="okr-table">
+            <thead>
+              <tr>
+                <th>Level</th>
+                <th>Department</th>
+                <th>Objective</th>
+                <th>Key Result</th>
+                <th>Progress</th>
+                <th>Status</th>
+                <th>Owner</th>
+                <th>Islamic Value</th>
+                <th>Quarter</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="okrTableBody">
+              <!-- Table rows will be populated by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- OKR Status Chart -->
+        <div class="chart-container">
+          <h3>OKR Status Distribution</h3>
+          <canvas id="okrStatusChart"></canvas>
+        </div>
+      </section>
+
+      <!-- Projects Section -->
+      <section id="projects-section" class="section">
+        <h2>KPI Performance</h2>
+
+        <!-- KPI Controls -->
+        <div class="project-controls">
+          <button id="addKpiBtn" class="btn btn-primary">Add KPI</button>
+          <div class="project-filters">
+            <select id="kpiDepartmentFilter">
+              <option value="">All Departments</option>
+              <option value="Communications">Communications</option>
+              <option value="Community Engagement">Community Engagement</option>
+              <option value="Financial">Financial</option>
+              <option value="Membership">Membership</option>
+              <option value="IT">IT</option>
+            </select>
+            <select id="kpiTrendFilter">
+              <option value="">All Trends</option>
+              <option value="up">Trending Up</option>
+              <option value="stable">Stable</option>
+              <option value="down">Trending Down</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- KPI Table -->
+        <div class="table-container">
+          <table class="kpi-table">
+            <thead>
+              <tr>
+                <th>Objective</th>
+                <th>KPI</th>
+                <th>Target</th>
+                <th>Current</th>
+                <th>Progress</th>
+                <th>Trend</th>
+                <th>Department</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="kpiTableBody">
+              <!-- Table rows will be populated by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- KPI Performance Charts -->
+        <div class="project-charts">
+          <div class="chart-container">
+            <h3>KPI Progress by Department</h3>
+            <canvas id="kpiDepartmentChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h3>KPI Trends</h3>
+            <canvas id="kpiTrendChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Training Section -->
+      <section id="training-section" class="section">
+        <h2>Curriculum & Training</h2>
+
+        <!-- Training Controls -->
+        <div class="training-controls">
+          <button id="addCurriculumBtn" class="btn btn-primary">
+            Add Curriculum
+          </button>
+          <div class="training-filters">
+            <select id="curriculumStatusFilter">
+              <option value="">All Status</option>
+              <option value="Complete">Complete</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Pending">Pending</option>
+              <option value="Under Review">Under Review</option>
+            </select>
+            <select id="curriculumDepartmentFilter">
+              <option value="">All Departments</option>
+              <option value="Youth Juniors (YJ)">Youth Juniors (YJ)</option>
+              <option value="Youth">Youth</option>
+              <option value="Membership Development">
+                Membership Development
+              </option>
+              <option value="Community Engagement">Community Engagement</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Curriculum Table -->
+        <div class="table-container">
+          <table class="curriculum-table">
+            <thead>
+              <tr>
+                <th>Department</th>
+                <th>Curriculum Title</th>
+                <th>Submitted</th>
+                <th>Reviewed</th>
+                <th>Approved</th>
+                <th>Mentors Trained</th>
+                <th>Training Completion</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="curriculumTableBody">
+              <!-- Table rows will be populated by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Training Charts -->
+        <div class="training-charts">
+          <div class="chart-container">
+            <h3>Curriculum Approval Status</h3>
+            <canvas id="curriculumStatusChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h3>Training Completion Rate</h3>
+            <canvas id="trainingChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h3>Mentors Trained by Department</h3>
+            <canvas id="mentorsChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Analytics Section -->
+      <section id="analytics-section" class="section">
+        <h2>Risk Management & Analytics</h2>
+
+        <!-- Analytics Controls -->
+        <div class="analytics-controls">
+          <button id="addRiskBtn" class="btn btn-primary">Add Risk</button>
+          <div class="risk-filters">
+            <select id="riskCategoryFilter">
+              <option value="">All Categories</option>
+              <option value="Organizational">Organizational</option>
+              <option value="Financial">Financial</option>
+              <option value="Technical">Technical</option>
+              <option value="External">External</option>
+              <option value="Community">Community</option>
+            </select>
+            <select id="riskStatusFilter">
+              <option value="">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Monitored">Monitored</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Risk Table -->
+        <div class="table-container">
+          <table class="risk-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Risk Event</th>
+                <th>Probability</th>
+                <th>Impact</th>
+                <th>Risk Score</th>
+                <th>Status</th>
+                <th>Response Strategy</th>
+                <th>Owner</th>
+                <th>Due Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="riskTableBody">
+              <!-- Table rows will be populated by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Risk Analytics Charts -->
+        <div class="analytics-grid">
+          <div class="chart-container">
+            <h3>Risk Score Distribution</h3>
+            <canvas id="riskScoreChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h3>Risk by Category</h3>
+            <canvas id="riskCategoryChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h3>Risk Response Strategies</h3>
+            <canvas id="riskResponseChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h3>Overall Performance Trends</h3>
+            <canvas id="performanceTrendChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Analytics Summary -->
+        <div class="analytics-summary">
+          <h3>Risk Management Summary</h3>
+          <div id="riskSummary" class="summary-content">
+            <!-- Summary will be populated by JavaScript -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+      <span id="toastMessage"></span>
+      <button
+        id="toastClose"
+        class="toast-close"
+        onclick="document.getElementById('toast').classList.remove('show')"
+      >
+        &times;
+      </button>
+    </div>
+
+    <!-- Modal Container (for forms and dialogs) -->
+    <div id="modalContainer" class="modal-container">
+      <!-- Modal content will be populated by JavaScript -->
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="loading-indicator">
+      <div class="spinner"></div>
+      <span>Loading...</span>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      function logout() {
+        localStorage.removeItem('loggedInUser');
+        window.location.href = 'login.html';
+      }
+    </script>
+    <script src="app.js"></script>
+  </body>
+</html>
