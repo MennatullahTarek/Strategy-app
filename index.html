@@ -4,10 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Strategic Planning Dashboard</title>
+
+    <!-- ✅ Redirect to login if not authenticated -->
+    <script>
+      const user = localStorage.getItem('loggedInUser');
+      if (!user) {
+        window.location.href = 'login.html';
+      }
+    </script>
+
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
+      /* same styles you had already... */
       body {
         margin: 0;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -162,13 +172,10 @@
     </style>
   </head>
   <body>
-    <!-- Navigation Bar -->
     <nav class="navbar">
       <div class="nav-title">Strategic Planning Dashboard</div>
       <div class="nav-buttons">
-        <button class="nav-btn active" data-section="dashboard">
-          Dashboard
-        </button>
+        <button class="nav-btn active" data-section="dashboard">Dashboard</button>
         <button class="nav-btn" data-section="okrs">OKRs</button>
         <button class="nav-btn" data-section="projects">Projects</button>
         <button class="nav-btn" data-section="training">Training</button>
@@ -511,7 +518,7 @@
       </section>
     </main>
 
-    <!-- Toast Notification -->
+   
     <div id="toast" class="toast">
       <span id="toastMessage"></span>
       <button
@@ -523,18 +530,12 @@
       </button>
     </div>
 
-    <!-- Modal Container (for forms and dialogs) -->
-    <div id="modalContainer" class="modal-container">
-      <!-- Modal content will be populated by JavaScript -->
-    </div>
-
-    <!-- Loading Indicator -->
+    <div id="modalContainer" class="modal-container"></div>
     <div id="loadingIndicator" class="loading-indicator">
       <div class="spinner"></div>
       <span>Loading...</span>
     </div>
 
-    <!-- JavaScript -->
     <script>
       function logout() {
         localStorage.removeItem('loggedInUser');
